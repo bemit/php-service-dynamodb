@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          docker run -it --rm -v `pwd`:/app composer install --ignore-platform-reqs
+          docker run --rm -v `pwd`:/app composer install --ignore-platform-reqs
 
       - name: Run tests in the just build app image
         run: |
