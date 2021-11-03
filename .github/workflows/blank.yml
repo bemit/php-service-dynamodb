@@ -28,7 +28,7 @@ jobs:
 
       - name: Run tests in the just build app image
         run: |
-          docker-compose run --rm test sh -c "cd /var/www/html ./vendor/bin/phpunit --coverage-clover coverage.xml --testdox -c phpunit-ci.xml"
+          docker-compose run -i --rm test sh -c "cd /var/www/html ./vendor/bin/phpunit --coverage-clover coverage.xml --testdox -c phpunit-ci.xml"
 
       - name: Send code coverage report to Codecov.io
         uses: codecov/codecov-action@v1
