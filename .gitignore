@@ -1,0 +1,21 @@
+# env variables
+.env*
+!.env.example
+
+# Composer
+/vendor
+
+coverage.txt
+coverage/
+
+.phpunit.result.cache
+
+# Mac
+.DS_Store
+
+#
+## JetBrains IDE's
+
+.idea/
+*.iml
+*.iws
