@@ -12,27 +12,27 @@ final class DynamoServiceTest extends TestCase {
         $this->assertInstanceOf(\Aws\DynamoDb\DynamoDbClient::class, $client);
     }
 
-    public function testBasicArrayToItem(): void {
+    public function testBasicConvertToItem(): void {
         $sercice = new \Bemit\DynamoDB\DynamoService('eu-central-1', 'somekey', 'somesecret');
-        $res = $sercice->arrayToItem(['some-key' => 'the-text']);
+        $res = $sercice->toItem(['some-key' => 'the-text']);
         $this->assertEquals(['some-key' => ['S' => 'the-text']], $res);
     }
 
-    public function testBasicItemToArray(): void {
+    public function testBasicConvertFromItem(): void {
         $sercice = new \Bemit\DynamoDB\DynamoService('eu-central-1', 'somekey', 'somesecret');
-        $res = $sercice->itemToArray(['some-key' => ['S' => 'the-text']]);
+        $res = $sercice->fromItem(['some-key' => ['S' => 'the-text']]);
         $this->assertEquals(['some-key' => 'the-text'], $res);
     }
 
-    public function testBasicArrayElement(): void {
+    public function testBasicConvertToItemValue(): void {
         $sercice = new \Bemit\DynamoDB\DynamoService('eu-central-1', 'somekey', 'somesecret');
-        $res = $sercice->parseArrayElement('the-text');
+        $res = $sercice->toItemValue('the-text');
         $this->assertEquals(['S' => 'the-text'], $res);
     }
 
-    public function testBasicItemProp(): void {
+    public function testBasicConvertFromItemValue(): void {
         $sercice = new \Bemit\DynamoDB\DynamoService('eu-central-1', 'somekey', 'somesecret');
-        $res = $sercice->parseItemProp(['S' => 'the-text']);
+        $res = $sercice->fromItemValue(['S' => 'the-text']);
         $this->assertEquals('the-text', $res);
     }
 }

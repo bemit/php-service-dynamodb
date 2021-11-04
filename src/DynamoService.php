@@ -5,17 +5,17 @@ namespace Bemit\DynamoDB;
 use Aws\Credentials\Credentials;
 use Aws\DynamoDb\DynamoDbClient;
 
-class DynamoService implements ItemToArrayInterface, ArrayToItemInterface {
-    protected $dynamo;
-    protected static $instance;
-    protected ArrayToItemInterface $array_to_item;
-    protected ItemToArrayInterface $item_to_array;
+class DynamoService implements DynamoServiceInterface {
+
+    protected DynamoDbClient $dynamo;
+    protected ConvertFromItemInterface $from_item;
+    protected ConvertToItemInterface $to_item;
 
     public function __construct(
-        string                $region, string $dynamo_key, string $dynamo_secret,
-        ?string               $endpoint = null, $debug = false,
-        ?ItemToArrayInterface $item_to_array = null,
-        ?ArrayToItemInterface $array_to_item = null
+        string                    $region, string $dynamo_key, string $dynamo_secret,
+        ?string                   $endpoint = null, $debug = false,
+        ?ConvertFromItemInterface $from_item = null,
+        ?ConvertToItemInterface   $to_item = null
     ) {
         $credentials = new Credentials($dynamo_key, $dynamo_secret);
 
@@ -30,27 +30,43 @@ class DynamoService implements ItemToArrayInterface, ArrayToItemInterface {
         }
 
         $this->dynamo = new DynamoDbClient($params);
-        $this->item_to_array = $item_to_array ?? new ItemToArray();
-        $this->array_to_item = $array_to_item ?? new ArrayToItem();
+        $this->from_item = $from_item ?? new ConvertFromItem();
+        $this->to_item = $to_item ?? new ConvertToItem();
     }
 
     public function client(): DynamoDbClient {
         return $this->dynamo;
     }
 
-    public function arrayToItem($item): array {
-        return $this->array_to_item->arrayToItem($item);
+    /**
+     * @throws InvalidTypeException
+     * @throws \JsonException
+     */
+    public function toItem(array|\stdClass $item, array $schema = [], bool $ignore_nulls = false): array {
+        return $this->to_item->toItem($item, $schema, $ignore_nulls);
     }
 
-    public function parseArrayElement($value): array {
-        return $this->array_to_item->parseArrayElement($value);
+    /**
+     * @throws InvalidTypeException
+     * @throws \JsonException
+     */
+    public function toItemValue($value, ?string $type = null): array {
+        return $this->to_item->toItemValue($value, $type);
     }
 
-    public function itemToArray(array $item): array {
-        return $this->item_to_array->itemToArray($item);
+    /**
+     * @throws \JsonException
+     * @throws InvalidItemTypeException
+     */
+    public function fromItem(array $item, bool $enforce_object = false): array|\stdClass {
+        return $this->from_item->fromItem($item, $enforce_object);
     }
 
-    public function parseItemProp($value_def) {
-        return $this->item_to_array->parseItemProp($value_def);
+    /**
+     * @throws \JsonException
+     * @throws InvalidItemTypeException
+     */
+    public function fromItemValue($value_def): float|string|bool|array|\stdClass|null {
+        return $this->from_item->fromItemValue($value_def);
     }
 }

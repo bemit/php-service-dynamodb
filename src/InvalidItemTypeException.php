@@ -2,6 +2,6 @@
 
 namespace Bemit\DynamoDB;
 
-class InvalidModeException extends \Exception {
+class InvalidItemTypeException extends \Exception {
 
 }

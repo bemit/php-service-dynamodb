@@ -7,7 +7,7 @@
 [![Github actions Build](https://github.com/bemit/php-service-dynamodb/actions/workflows/blank.yml/badge.svg)](https://github.com/bemit/php-service-dynamodb/actions)
 [![PHP Version Require](http://poser.pugx.org/bemit/dynamodb/require/php)](https://packagist.org/packages/bemit/dynamodb)
 
-PHP DynamoDB service class, with item-data converters.
+PHP DynamoDB service class, with item <> data converters.
 
 ```shell
 composer require bemit/dynamodb
@@ -15,7 +15,7 @@ composer require bemit/dynamodb
 
 Usage:
 
-```injectablephp
+```php
 use Bemit\DynamoDB\DynamoService;
 
 $service = new DynamoService(
@@ -23,35 +23,77 @@ $service = new DynamoService(
     string $dynamo_key, string $dynamo_secret,
     ?string $endpoint = null,
     $debug = false,
-    // optionally overwrite the converters:
-    $item_to_array = null, $array_to_item = null,
+    // optional, overwrite the converters:
+    ConvertFromItemInterface $from_item = null,
+    ConvertToItemInterface $to_item = null,
 );
 
 // just the dynamodb client:
 $client = $service->client();
 
-// $arr = ['some-key' => 'the-text']
-$item = $service->arrayToItem($arr);
-// $arr_e = 'the-text'
-$item_p = $service->parseArrayElement($arr_e);
+//
+// Convert from array / stdClass to DynamoDB Item:
 
-// $item = ['some-key' => ['S' => 'the-text']]
-$arr = $service->itemToArray($item);
+// $arr = ['some_key' => 'the-text']
+$item = $service->toItem($arr);
+
+// or as stdClass:
+// $std = new stdClass;
+// $std->some_key = 'the-text';
+$item = $service->toItem($std);
+
+// single value:
+// $arr_e = 'the-text'
+$item_p = $service->toItemValue($arr_e);
+
+//
+// Convert from DynamoDB Item to array / stdClass:
+
+// $item = ['some_key' => ['S' => 'the-text']]
+$arr = $service->fromItem($item);
 // $item_p = ['S' => 'the-text']]
-$arr_p = $service->parseItemProp($item_p);
+$arr_p = $service->fromItemValue($item_p);
+
+//
+// Convert NS/SS from array / stdClass to DynamoDB:
+//
+// NS + SS needs a "key schema" when converting from array to item,
+// nested usages of NS/SS are not automated and would result in a `L` the next save
+
+// $arr_ss = ['s1', 's2', 's3']
+$item_ss = $service->toItemValue($arr_ss, 'SS');
+// $arr_ns = [1, 2, 3]
+$item_ns = $service->toItemValue($arr_ns, 'NS');
+
+// or:
+// $obj = ['prop1' => ['s1', 's2', 's3']]
+$item_obj = $service->toItem($obj, ['prop1' => 'SS']);
+
+// 
+// Ignore Nulls using when converting from array / stdClass to DynamoDB
+
+// `true` as  third parameter of `toItem` will ignore null values in the root level of the item 
+// $arr = ['k1' => 's1', 'k2' => null]
+$item = $service->toItem($arr, [], true);
 ```
 
-Modes supported:
+Modes supported, with automatic detection and conversion:
 
 - `S`, strings
 - `N`, numerics, cast by `(float)`, keeps numbers the same in e.g. JSON (no `.0`)
 - `BOOL`, booleans
 - `M`, maps, `stdClass` or assoc arrays
-    - for safest usage uses `stdClass`, for app-side you should use e.g. non-assoc `json_decode`
+    - for safest usage uses `stdClass` for `M` conversion
+    - for app-side, you should use e.g. non-assoc `json_decode`
     - supports nested maps & lists
 - `L`, lists / arrays **or empty array**
     - supports nested lists & maps
 - `NULL`, null values
+
+Modes supported with typing at `toItem`, automatic at `fromItem`:
+
+- `SS`, string sets / list of strings
+- `NS`, string sets / list of strings
 
 ## Dev Notices
 
